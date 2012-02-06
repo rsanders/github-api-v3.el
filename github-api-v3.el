@@ -374,7 +374,7 @@ for the info."
 (defun githubv3/create-auth-token ()
   "Create an authorization"
   (let ((url-request-method "POST")
-        (githubv3/request-data "{\"scopes\": [\"user\", \"public_repo\", \"repo\", \"gist\"]}")
+        (githubv3/request-data '(("scopes" . ["user", "public_repo", "repo", "gist"])))
         (githubv3/auth-type "basic"))
     (githubv3/retrieve-synchronously
      (list "authorizations"))
