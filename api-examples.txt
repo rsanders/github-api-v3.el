@@ -1,0 +1,106 @@
+
+
+
+
+(githubv3/user-info "rsanders")
+(:email "rsanders+github@gmail.com" :created_at "2008-04-12T19:45:07Z" :public_repos 39 :id 6990 :html_url "https://github.com/rsanders" :company "" :name "Robert Sanders" :location "Atlanta, GA" :followers 13 :avatar_url "https://secure.gravatar.com/avatar/d7ac22e431f31deb276657d3c63fa10e?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :login "rsanders" :gravatar_id "d7ac22e431f31deb276657d3c63fa10e" :following 12 :public_gists 3 :bio nil :url "https://api.github.com/users/rsanders" :hireable :json-false :blog "http://twitter.com/aquaman73" :type "User")
+
+(githubv3/user-info)
+(:email "robert@zeevex.com" :created_at "2010-05-31T14:35:07Z" :public_repos 13 :id 292370 :html_url "https://github.com/robertzx" :collaborators 0 :company "InComm" :name "Robert Sanders" :location "Atlanta, GA" :followers 0 :plan (:collaborators 0 :name "free" :private_repos 0 :space 307200) :owned_private_repos 0 :avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :private_gists 10 :total_private_repos 0 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :following 0 :public_gists 19 :bio nil :disk_usage 240 :url "https://api.github.com/users/robertzx" :hireable :json-false :blog "http://www.zeevex.com/" :type "User")
+
+
+(githubv3/delete-gist "1749231")
+
+
+(githubv3/fork-gist "1731208")
+(:created_at "2012-02-05T20:44:26Z" :id "1747855" :html_url "https://gist.github.com/1747855" :user nil :updated_at "2012-02-05T20:44:26Z" :comments 0 :git_push_url "git@gist.github.com:1747855.git" :git_pull_url "git://gist.github.com/1747855.git" :files (:my-whitespace-nazi\.el (:language "Emacs Lisp" :filename "my-whitespace-nazi.el" :size 734 :raw_url "https://gist.github.com/raw/1747855/b1005067b95f282337ff7213267d9107ff757183/my-whitespace-nazi.el" :type "text/plain")) :public t :description nil :url "https://api.github.com/gists/1747855")
+
+(:created_at "2012-02-05T20:43:10Z" :id "1747844" :html_url "https://gist.github.com/1747844" :user nil :updated_at "2012-02-05T20:43:10Z" :comments 0 :git_push_url "git@gist.github.com:1747844.git" :git_pull_url "git://gist.github.com/1747844.git" :files (:my-whitespace-nazi\.el (:language "Emacs Lisp" :filename "my-whitespace-nazi.el" :size 734 :raw_url "https://gist.github.com/raw/1747844/b1005067b95f282337ff7213267d9107ff757183/my-whitespace-nazi.el" :type "text/plain")) :public t :description nil :url "https://api.github.com/gists/1747844")
+
+(:created_at "2012-02-05T20:38:33Z" :id "1747828" :html_url "https://gist.github.com/1747828" :git_push_url "git@gist.github.com:1747828.git" :user nil :git_pull_url "git://gist.github.com/1747828.git" :updated_at "2012-02-05T20:38:33Z" :comments 0 :files (:my-whitespace-nazi\.el (:raw_url "https://gist.github.com/raw/1747828/b1005067b95f282337ff7213267d9107ff757183/my-whitespace-nazi.el" :language "Emacs Lisp" :filename "my-whitespace-nazi.el" :size 734 :type "text/plain")) :public t :description nil :url "https://api.github.com/gists/1747828")
+
+and later:
+
+(:created_at "2012-02-05T20:35:35Z" :id "1747819" :user nil :updated_at "2012-02-05T20:35:35Z" :comments 0 :git_push_url "git@gist.github.com:1747819.git" :files (:my-whitespace-nazi\.el (:raw_url "https://gist.github.com/raw/1747819/b1005067b95f282337ff7213267d9107ff757183/my-whitespace-nazi.el" :language "Emacs Lisp" :filename "my-whitespace-nazi.el" :size 734 :type "text/plain")) :public t :html_url "https://gist.github.com/1747819" :git_pull_url "git://gist.github.com/1747819.git" :description nil :url "https://api.github.com/gists/1747819")
+
+
+;; single gist
+(githubv3/get-gist "1731208")
+
+(:created_at "2012-02-03T17:11:49Z" :id "1731208" :forks [] :user (:avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :id 292370 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :url "https://api.github.com/users/robertzx") :git_push_url "git@gist.github.com:1731208.git" :updated_at "2012-02-03T17:11:49Z" :comments 0 :history [(:version "f575f430952d95f0f5fbe3180f14b7f2c8dd54a3" :user (:avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :id 292370 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :url "https://api.github.com/users/robertzx") :change_status (:additions 1 :total 1 :deletions 0) :committed_at "2012-02-05T16:05:31Z" :url "https://api.github.com/gists/1731208/f575f430952d95f0f5fbe3180f14b7f2c8dd54a3") (:version "e04b94eefd91b9bd4055f6efa5ec4267ccf4b268" :user (:avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :id 292370 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :url "https://api.github.com/users/robertzx") :change_status (:additions 2 :total 3 :deletions 1) :committed_at "2012-02-05T06:08:46Z" :url "https://api.github.com/gists/1731208/e04b94eefd91b9bd4055f6efa5ec4267ccf4b268") (:version "b1613ea64494c26eba7c6e0a6815559c22d6e980" :user (:avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :id 292370 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :url "https://api.github.com/users/robertzx") :change_status (:additions 2 :total 3 :deletions 1) :committed_at "2012-02-05T06:07:16Z" :url "https://api.github.com/gists/1731208/b1613ea64494c26eba7c6e0a6815559c22d6e980") (:version "1ee2a2ca3c4b033453323554b7082eb6bbbcad85" :user (:avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :id 292370 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :url "https://api.github.com/users/robertzx") :change_status (:additions 1 :total 2 :deletions 1) :committed_at "2012-02-05T06:06:24Z" :url "https://api.github.com/gists/1731208/1ee2a2ca3c4b033453323554b7082eb6bbbcad85") (:version "361aa876aadc02e533191e64644cd4e4edbf5241" :user (:avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :id 292370 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :url "https://api.github.com/users/robertzx") :change_status (:additions 1 :total 3 :deletions 2) :committed_at "2012-02-05T05:36:48Z" :url "https://api.github.com/gists/1731208/361aa876aadc02e533191e64644cd4e4edbf5241") (:version "19ebecb95d9ad86463b74849fde8d9c35eee930f" :user (:avatar_url "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" :id 292370 :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74" :url "https://api.github.com/users/robertzx") :change_status (:additions 21 :total 21 :deletions 0) :committed_at "2012-02-03T17:11:49Z" :url "https://api.github.com/gists/1731208/19ebecb95d9ad86463b74849fde8d9c35eee930f")] :git_pull_url "git://gist.github.com/1731208.git" :files (:my-whitespace-nazi\.el (:raw_url "https://gist.github.com/raw/1731208/b1005067b95f282337ff7213267d9107ff757183/my-whitespace-nazi.el" :language "Emacs Lisp" :filename "my-whitespace-nazi.el" :size 734 :content ";; zeevex whitespace standards WHETHER YOU LIKE IT OR NOT
+;; test 2
+
+
+(require 'whitespace)
+ 
+(defun activate-trailing-whitespace-nazi ()
+  \"Annoy you with trailing whitespace, and then delete it on save anyway\"
+  (interactive)
+  (whitespace-mode t)
+  (setq show-trailing-whitespace t)
+  (setq tab-width 2)
+  (setq indent-tabs-mode nil)
+  
+  (add-hook 'local-write-file-hooks (lambda ()
+                                      (untabify (buffer-end 0) (buffer-end 1))
+                                      (delete-trailing-whitespace)
+                                      nil)))
+
+(add-hook 'ruby-mode-hook 'activate-trailing-whitespace-nazi)
+(add-hook 'yaml-mode-hook 'activate-trailing-whitespace-nazi)
+(provide 'my-whitespace-nazi)
+
+" :type "text/plain")) :public t :html_url "https://gist.github.com/1731208" :description nil :url "https://api.github.com/gists/1731208")
+
+
+
+;; for an unknown URL
+(:message "Not Found")
+
+
+/users/:user/gists
+
+ (githubv3/retrieve-synchronously (list "users" "robertzx" "gists"))
+  [(:created_at "2012-02-03T17:11:49Z" :id "1731208" :user (:id 292370
+  :avatar_url
+  "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png"
+  :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74"
+  :url "https://api.github.com/users/robertzx") :updated_at
+  "2012-02-03T17:11:49Z" :comments 0 :git_push_url
+  "git@gist.github.com:1731208.git" :files (:my-whitespace-nazi\.el
+  (:raw_url
+  "https://gist.github.com/raw/1731208/b1005067b95f282337ff7213267d9107ff757183/my-whitespace-nazi.el"
+  :language "Emacs Lisp" :filename "my-whitespace-nazi.el" :size 734
+  :type "text/plain")) :public t :html_url
+  "https://gist.github.com/1731208" :git_pull_url
+  "git://gist.github.com/1731208.git" :description nil :url
+  "https://api.github.com/gists/1731208")
+
+ (:created_at "2012-02-03T14:20:12Z" :id "1730376" :user (:id 292370
+ :avatar_url
+ "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png"
+ :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74"
+ :url "https://api.github.com/users/robertzx") :updated_at
+ "2012-02-03T14:20:12Z" :comments 0 :git_push_url
+ "git@gist.github.com:1730376.git" :files (:stormfs-output\.txt
+ (:raw_url
+ "https://gist.github.com/raw/1730376/32559410b9f54e485cb9ece6bb35449dd8064cc2/stormfs-output.txt"
+ :language "Text" :filename "stormfs-output.txt" :size 362589 :type
+ "text/plain")) :public t :html_url "https://gist.github.com/1730376"
+ :git_pull_url "git://gist.github.com/1730376.git" :description nil
+ :url "https://api.github.com/gists/1730376")
+
+ (:created_at "2012-01-29T01:16:43Z" :id "1696559" :user (:id 292370
+ :avatar_url
+ "https://secure.gravatar.com/avatar/53dccc34ba009b4aba6069a87e8fdf74?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png"
+ :login "robertzx" :gravatar_id "53dccc34ba009b4aba6069a87e8fdf74"
+ :url "https://api.github.com/users/robertzx") :updated_at
+ "2012-01-29T01:16:43Z" :comments 0 :git_push_url
+ "git@gist.github.com:1696559.git" :files (:gistfile1\.txt (:raw_url
+ "https://gist.github.com/raw/1696559/b1f1ceff007a788148ddc814830fb667024b1b96/gistfile1.txt"
+ :language "Text" :filename "gistfile1.txt" :size 113 :type
+ "text/plain")) :public t :html_url "https://gist.github.com/1696559"
+ :git_pull_url "git://gist.github.com/1696559.git" :description nil
+ :url "https://api.github.com/gists/1696559")]
+
+
