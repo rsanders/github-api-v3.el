@@ -20,6 +20,109 @@
 ;; Created: 2010-06-06
 ;; By: Nathan Weizenbaum
 
+;;; Reading Input
+
+(defun githubv3/-lazy-completion-callback (fn &optional noarg)
+  "Converts a simple string-listing FN into a lazy-loading completion callback.
+FN should take a string (the contents of the minibuffer) and
+return a list of strings (the candidates for completion).  This
+method takes care of any caching and makes sure FN isn't called
+until completion needs to happen.
+
+If NOARG is non-nil, don't pass a string to FN."
+  (lexical-let ((fn (githubv3/-cache-function fn)) (noarg noarg))
+    (lambda (string predicate allp)
+      (let ((strs (if noarg (funcall fn) (funcall fn string))))
+        (if allp (all-completions string strs predicate)
+          (try-completion string strs predicate))))))
+
+;;;
+;;; NOT CONVERTED TO V3 YET
+;;;
+
+(defun githubv3/read-user (&optional prompt predicate require-match initial-input
+                                     hist def inherit-input-method)
+  "Read a GitHub username from the minibuffer with completion.
+
+PROMPT, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
+INHERIT-INPUT-METHOD work as in `completing-read'.  PROMPT
+defaults to \"GitHub user: \".  HIST defaults to
+'githubv3/users-history.
+
+WARNING: This function currently doesn't work fully, since
+GitHub's user search API only returns an apparently random subset
+of users."
+  (setq hist (or hist 'githubv3/users-history))
+  (completing-read (or prompt "GitHub user: ")
+                   (githubv3/-lazy-completion-callback
+                    (lambda (s)
+                      (mapcar (lambda (user) (plist-get user :name))
+                              (githubv3/user-search s))))
+                   predicate require-match initial-input hist def inherit-input-method))
+
+;;;
+;;; NOT CONVERTED TO V3 YET
+;;;
+
+(defun githubv3/read-repo-for-user (user &optional prompt predicate require-match
+                                         initial-input hist def inherit-input-method)
+  "Read a GitHub repository from the minibuffer with completion.
+USER is the owner of the repository.
+
+PROMPT, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
+INHERIT-INPUT-METHOD work as in `completing-read'.  PROMPT
+defaults to \"GitHub repo: <user>/\"."
+  (lexical-let ((user user))
+    (completing-read (or prompt (concat "GitHub repo: " user "/"))
+                     (githubv3/-lazy-completion-callback
+                      (lambda ()
+                        (mapcar (lambda (repo) (plist-get repo :name))
+                                (githubv3/repos-for-user user)))
+                      'noarg)
+                     predicate require-match initial-input hist def
+                     inherit-input-method)))
+
+;;;
+;;; NOT CONVERTED TO V3 YET
+;;;
+
+(defun githubv3/read-repo (&optional prompt predicate require-match initial-input
+                                     hist def inherit-input-method)
+  "Read a GitHub user-repository pair with completion.
+Return (USERNAME . REPO), or nil if the user enters no input.
+
+PROMPT, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
+INHERIT-INPUT-METHOD work as in `completing-read'.  PROMPT
+defaults to \"GitHub repo (user/repo): \".  HIST defaults to
+'githubv3/repos-history.  If REQUIRE-MATCH is non-nil and the
+user enters no input, raises an error.
+
+WARNING: This function currently doesn't work fully, since
+GitHub's user search API only returns an apparently random subset
+of users, and also has no way to search for users whose names
+begin with certain characters."
+  (setq hist (or hist 'githubv3/repos-history))
+  (let ((result (completing-read
+                 (or prompt "GitHub repo (user/repo): ")
+                 (githubv3/-lazy-completion-callback 'githubv3/-repo-completions)
+                 predicate require-match initial-input hist def inherit-input-method)))
+    (if (string= result "")
+        (when require-match (error "No repository given"))
+      (githubv3/parse-repo result))))
+
+(defun githubv3/-repo-completions (string)
+  "Try completing the given GitHub user/repository pair.
+STRING is the text already in the minibuffer, PREDICATE is a
+predicate that the string must satisfy."
+  (destructuring-bind (username . rest) (split-string string "/")
+    (if (not rest) ;; Need to complete username before we start completing repo
+        (mapcar (lambda (user) (concat (plist-get user :name) "/"))
+                (githubv3/user-search username))
+      (if (not (string= (car rest) ""))
+          (githubv3/-use-cache (concat username "/"))
+        (mapcar (lambda (repo) (concat username "/" (plist-get repo :name)))
+                (githubv3/repos-for-user username))))))
+
 ;;;
 ;;; NOT CONVERTED TO V3 YET
 ;;;

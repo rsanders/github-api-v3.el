@@ -59,6 +59,24 @@ change."
           obj))))
 
 
+
+(defun githubv3/remote-for-commit (commit)
+  "Return the name of the remote that contains COMMIT.
+If no remote does, return nil.  COMMIT should be the full SHA1
+commit hash.
+
+If origin contains the commit, it takes precedence.  Otherwise
+the priority is nondeterministic."
+  (flet ((name-rev (remote commit)
+                   (magit-git-string "name-rev" "--name-only" "--no-undefined" "--refs"
+                                     ;; I'm not sure why the initial * is required,
+                                     ;; but if it's not there this always returns nil
+                                     (format "*remotes/%s/*" remote) commit)))
+    (let ((remote (or (name-rev "origin" commit) (name-rev "*" commit))))
+      (when (and remote (string-match "^remotes/\\(.*?\\)/" remote))
+        (match-string 1 remote)))))
+
+
 ;;;
 ;;; NOT CONVERTED TO V3 YET
 ;;;
@@ -125,7 +143,8 @@ Returned repos are decoded JSON objects (plists)."
      (githubv3/repo-network))))
 
 
-;;; Local Repo Information
+;;; Local Repo Information - requires that the current buffer be "in"
+;;; a local repo
 
 (defun githubv3/repo-info ()
   "Return information about this GitHub repo.
@@ -153,7 +172,42 @@ Error out if this isn't a GitHub repo."
 Error out if this isn't a GitHub repo."
   (caddr (githubv3/repo-info)))
 
-;;; Creating Repos
+(defun githubv3/remote-info (remote)
+  "Return (USERNAME REPONAME SSHP) for the given REMOTE.
+Return nil if REMOTE isn't a GitHub remote.
+
+USERNAME is the owner of the repo, REPONAME is the name of the
+repo, and SSH is non-nil if it's checked out via SSH."
+  (block nil
+    (let ((url (magit-get "remote" remote "url")))
+      (unless url (return))
+      (when (string-match "\\(?:git\\|http\\)://github\\.com/\\(.*?\\)/\\(.*\\)\.git" url)
+        (return (list (match-string 1 url) (match-string 2 url) nil)))
+      (when (string-match "git@github\\.com:\\(.*?\\)/\\(.*\\)\\.git" url)
+        (return (list (match-string 1 url) (match-string 2 url) t)))
+      (return))))
+
+
+(defun githubv3/remote-info-for-commit (commit)
+  "Return information about the GitHub repo for the remote that contains COMMIT.
+If no remote does, return nil.  COMMIT should be the full SHA1
+commit hash.
+
+The information is of the form returned by `githubv3/remote-info'.
+
+If origin contains the commit, it takes precedence.  Otherwise
+the priority is nondeterministic."
+  (let ((remote (githubv3/remote-for-commit commit)))
+    (when remote (githubv3/remote-info remote))))
+
+(defun githubv3/branches-for-remote (remote)
+  "Return a list of branches in REMOTE, as of the last fetch."
+  (let ((lines (magit-git-lines "remote" "show" "-n" remote)) branches)
+    (while (not (string-match-p "^  Remote branches:" (pop lines)))
+      (unless lines (error "Unknown output from `git remote show'")))
+    (while (string-match "^    \\(.*\\)" (car lines))
+      (push (match-string 1 (pop lines)) branches))
+    branches))
 
 ;;;
 ;;; NOT CONVERTED TO V3 YET
@@ -237,30 +291,6 @@ creates a private repo."
                                   (plist-get (plist-get data :repository) :url)))
                        (list name))))
 
-;;; Forking Repos
-
-;;;
-;;; NOT CONVERTED TO V3 YET
-;;;
-
-
-(defun githubv3/send-pull-request (text recipients)
-  "Send a pull request with text TEXT to RECIPIENTS.
-RECIPIENTS should be a list of usernames."
-  (let ((url-request-method "POST")
-        (githubv3/request-data (cons (cons "message[body]" text)
-                                     (mapcar (lambda (recipient)
-                                               (cons "message[to][]" recipient))
-                                             recipients)))
-        (githubv3/api-base githubv3/github-url)
-        (url-max-redirections 0) ;; GitHub will try to redirect, but we don't care
-        githubv3/parse-response)
-    (githubv3/retrieve (list (githubv3/repo-owner) (githubv3/repo-name)
-                             "pull_request" (githubv3/name-rev-for-remote "HEAD" "origin"))
-                       (lambda (_)
-                         (kill-buffer)
-                         (message "Your pull request was sent.")))))
-
 (defun githubv3/toggle-ssh (&optional arg)
   "Toggle whether the current repo is checked out via SSH.
 With ARG, use SSH if and only if ARG is positive."
@@ -271,4 +301,46 @@ With ARG, use SSH if and only if ARG is positive."
              "remote" "origin" "url")
   (magit-refresh-status))
 
+(defun githubv3/name-rev-for-remote (rev remote)
+  "Return a human-readable name for REV that's valid in REMOTE.
+Like `magit-name-rev', but sanitizes things referring to remotes
+and errors out on local-only revs."
+  (setq rev (magit-name-rev rev))
+  (if (and (string-match "^\\(remotes/\\)?\\(.*?\\)/\\(.*\\)" rev)
+           (equal (match-string 2 rev) remote))
+      (match-string 3 rev)
+    (unless (githubv3/remote-contains-p remote rev)
+      (error "Commit %s hasn't been pushed"
+             (substring (magit-git-string "rev-parse" rev) 0 8)))
+    (cond
+     ;; Assume the GitHub repo will have all the same tags as we do,
+     ;; since we can't actually check without performing an HTTP request.
+     ((string-match "^tags/\\(.*\\)" rev) (match-string 1 rev))
+     ((and (not (string-match-p "^remotes/" rev))
+           (member rev (githubv3/branches-for-remote remote))
+           (githubv3/ref= rev (concat remote "/" rev)))
+      rev)
+     (t (magit-git-string "rev-parse" rev)))))
+
+(defun githubv3/remotes-containing-ref (ref)
+  "Return a list of remotes containing REF."
+  (loop with remotes
+        for line in (magit-git-lines "branch" "-r" "--contains" ref)
+        if (and (string-match "^ *\\(.+?\\)/" line)
+                (not (string= (match-string 1 line) (car remotes))))
+        do (push (match-string 1 line) remotes)
+        finally return remotes))
+
+(defun githubv3/remote-contains-p (remote ref)
+  "Return whether REF exists in REMOTE, in any branch.
+This does not fetch origin before determining existence, so it's
+possible that its result is based on stale data."
+  (member remote (githubv3/remotes-containing-ref ref)))
+
+(defun githubv3/ref= (ref1 ref2)
+  "Return whether REF1 refers to the same commit as REF2."
+  (string= (magit-rev-parse ref1) (magit-rev-parse ref2)))
+
+
 (provide 'github-api-v3-localrepo)
+

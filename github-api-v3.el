@@ -63,6 +63,11 @@ and `githubv3/retrieve-synchronously'.")
 Used by `githubv3/retrieve' and `githubv3/retrieve-synchronously'.
 This should only ever be `let'-bound, not set outright.")
 
+(defvar githubv3/auth-type "token"
+  "Set to 'token' or 'basic' to determine auth type used")
+
+;; output and caches
+
 (defvar githubv3/users-history nil
   "A list of users selected via `githubv3/read-user'.")
 
@@ -73,6 +78,22 @@ This should only ever be `let'-bound, not set outright.")
   "A hash from (USERNAME . REPONAME) to decoded JSON repo objects (plists).
 This caches the result of `githubv3/repo-obj' and
 `githubv3/cached-repo-obj'.")
+
+(defun githubv3/parse-repo (repo)
+  "Parse a REPO string of the form \"username/repo\".
+Return (USERNAME . REPO), or raise an error if the format is
+incorrect."
+  (condition-case err
+      (destructuring-bind (username repo) (split-string repo "/")
+        (cons username repo))
+    (wrong-number-of-arguments (error "Invalid GitHub repository %s" repo))))
+
+(defun githubv3/repo-url (username repo &optional sshp)
+  "Return the repository URL for USERNAME/REPO.
+If SSHP is non-nil, return the SSH URL instead.  Otherwise,
+return the HTTP URL."
+  (format (if sshp "git@github.com:%s/%s.git" "http://github.com/%s/%s.git")
+          username repo))
 
 
 ;;; Utilities
@@ -108,20 +129,18 @@ value if available or recursively call FN if not."
                     (push (cons args val) cache)
                     val))))))))
 
-(defun githubv3/make-query-string (params)
-  "Return a query string constructed from PARAMS.
-PARAMS is an assoc list of parameter names to values.
+(defun githubv3/request-data-as-json (&rest args)
+  "Return the requests data for the in-process request as a JSON string
 
-Any parameters with a nil values are ignored."
-  (replace-regexp-in-string
-   "&+" "&"
-   (mapconcat
-    (lambda (param)
-      (when (cdr param)
-        (concat (url-hexify-string (car param)) "="
-                (url-hexify-string (cdr param)))))
-    params "&")))
-
+Takes a single string and return that, or an array and convert it to JSON"
+  (let ((data (if (null args)
+                  githubv3/request-data
+                (car args))))
+    (cond
+     ((stringp data) data)
+     ((null data)    "")
+     (t              (json-encode data)))
+  ))
 
 ;;; Requests
 
@@ -143,9 +162,6 @@ If `url-request-method' is GET, the returned URL will include
     (if githubv3/use-ssl url
       (replace-regexp-in-string "^https" "http" url))))
 
-;; v3
-(defvar githubv3/auth-type "token"
-  "Set to 'token' or 'basic' to determine auth type used")
 
 ;; v3
 (defmacro githubv3/with-auth (&rest body)
@@ -248,10 +264,8 @@ Like `url-retrieve', except for the following:
 If `githubv3/parse-response' is nil, CALLBACK is just passed nil
 rather than the JSON response object."
   (githubv3/with-auth
-    (let (
-          (url-mime-accept-string "application/json")
-          ;; (url-request-extra-headers (append url-request-extra-headers (list '("Accept" . "application/json"))))
-          )
+    (let ((url-mime-accept-string "application/json")         
+          (url-request-data (githubv3/request-data-as-json)))
       (lexical-let ((callback callback) (githubv3/parse-response githubv3/parse-response))
         (url-retrieve (githubv3/request-url path)
                       (lambda (status &rest cbargs)
@@ -282,9 +296,8 @@ Like `url-retrieve-synchronously', except for the following:
 * Return a decoded JSON object (as a plist) rather than a buffer
   containing the response unless `githubv3/parse-response' is nil."
   (githubv3/with-auth
-    (let (
-          (url-mime-accept-string "application/json")
-          )
+    (let ((url-mime-accept-string "application/json")
+          (url-request-data (githubv3/request-data-as-json)))
       (with-current-buffer (url-retrieve-synchronously (githubv3/request-url path))
         (goto-char (point-min))
         (if (not githubv3/parse-response) (current-buffer)
@@ -361,7 +374,7 @@ for the info."
 (defun githubv3/create-auth-token ()
   "Create an authorization"
   (let ((url-request-method "POST")
-        (url-request-data "{\"scopes\": [\"user\", \"public_repo\", \"repo\", \"gist\"]}")
+        (githubv3/request-data "{\"scopes\": [\"user\", \"public_repo\", \"repo\", \"gist\"]}")
         (githubv3/auth-type "basic"))
     (githubv3/retrieve-synchronously
      (list "authorizations"))
@@ -401,6 +414,19 @@ If a username not supplied, the authenticated user will be used. "
 (defun githubv3/my-user-id ()
   "Return the authenticated user's ID"
   (plist-get (githubv3/user-info) :id))
+
+
+
+;;; Repositories
+
+;; v3
+;;;###autoload
+(defun githubv3/repos-for-user (user)
+  "Return an array of all repos owned by USER.
+The repos are decoded JSON objects (plists)."
+  (let ((url-request-method "GET"))
+    (githubv3/retrieve-synchronously
+     (list "users" user "repos"))))
 
 
 
@@ -451,20 +477,35 @@ The result is a decoded JSON object (plists)."
 
 
 
+;;; Pull requests
+
+;;;
+;;; NOT CONVERTED TO V3 YET
+;;;
+
+;;;###autoload
+(defun githubv3/send-pull-request (text recipients)
+  "Send a pull request with text TEXT to RECIPIENTS.
+RECIPIENTS should be a list of usernames."
+  (let ((url-request-method "POST")
+        (githubv3/request-data (cons (cons "message[body]" text)
+                                     (mapcar (lambda (recipient)
+                                               (cons "message[to][]" recipient))
+                                             recipients)))
+        (githubv3/api-base githubv3/github-url)
+        (url-max-redirections 0) ;; GitHub will try to redirect, but we don't care
+        githubv3/parse-response)
+    (githubv3/retrieve (list (githubv3/repo-owner) (githubv3/repo-name)
+                             "pull_request" (githubv3/name-rev-for-remote "HEAD" "origin"))
+                       (lambda (_)
+                         (kill-buffer)
+                         (message "Your pull request was sent.")))))
+
+
 ;;; GitHub Information
 
-;; v3
-;;;###autoload
-(defun githubv3/repos-for-user (user)
-  "Return an array of all repos owned by USER.
-The repos are decoded JSON objects (plists)."
-  (let ((url-request-method "GET"))
-    (githubv3/retrieve-synchronously
-     (list "users" user "repos"))))
 
-(defvar githubv3/status-buffer nil
-  "The Magit status buffer for the current buffer's Git repository.")
-(make-variable-buffer-local 'githubv3/status-buffer)
+
 
 (provide 'github-api-v3)
 
