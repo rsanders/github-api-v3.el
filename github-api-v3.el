@@ -341,7 +341,7 @@ for the info then sets it to the git config."
       (githubv3/set-config "user" user))
     
     (when (not token)
-      (setq token (read-string "GitHub API token: "))
+      (setq token (read-string (format "GitHub API token for '%s': " user)))
       (githubv3/set-config "v3token" token))
     
     (cons user token)))
