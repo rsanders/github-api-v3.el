@@ -362,7 +362,7 @@ for the info."
       (githubv3/set-config "user" user))
     
     (when (not password)
-      (setq password (read-string "GitHub password: ")))
+      (setq password (read-string (format "GitHub password for '%s': " user))))
     
     (cons user password)))
 
