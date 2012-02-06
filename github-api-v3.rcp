@@ -1,0 +1,7 @@
+(:name github-api-v3
+       :website "http://github.com/rsanders/github-api-v3.el"
+       :description "Emacs Lisp interface to the GitHub API v3"
+       :type git
+       :url "git://github.com/rsanders/github-api-v3.el.git"
+       :depends (magit magithub)
+       :load "github-api-v3-autoloads.el")

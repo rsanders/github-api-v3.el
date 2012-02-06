@@ -1057,11 +1057,11 @@ With ARG, use SSH if and only if ARG is positive."
   "The Magit status buffer for the current buffer's Git repository.")
 (make-variable-buffer-local 'githubv3/status-buffer)
 
-(provide 'githubv3)
+(provide 'github-api-v3)
 
 ;;;###autoload
 (eval-after-load 'magit
-  '(unless (featurep 'githubv3)
-     (require 'githubv3)))
+  '(unless (featurep 'github-api-v3)
+     (require 'github-api-v3)))
 
 ;;; githubv3.el ends here
