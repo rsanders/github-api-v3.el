@@ -31,6 +31,10 @@
 (require 'crm)
 (eval-when-compile (require 'cl))
 
+(defmacro when-ert-loaded (&rest body)
+  `(dont-compile
+     (when (featurep 'ert)
+       ,@body)))
 
 ;;; Variables
 
@@ -144,7 +148,6 @@ Takes a single string and return that, or an array and convert it to JSON"
 
 ;;; Requests
 
-;; v3
 (defun githubv3/request-url (path)
   "Return the full GitHub URL for the resource PATH.
 
@@ -163,7 +166,7 @@ If `url-request-method' is GET, the returned URL will include
       (replace-regexp-in-string "^https" "http" url))))
 
 
-;; v3
+
 (defmacro githubv3/with-auth (&rest body)
   `(if (equal githubv3/auth-type "basic")
        (githubv3/with-basic-auth
@@ -171,7 +174,7 @@ If `url-request-method' is GET, the returned URL will include
      (githubv3/with-token-auth
       ,@body)))
 
-;; v3
+
 (defmacro githubv3/with-token-auth (&rest body)
   "Runs BODY with GitHub token authorization in an header."
   (declare (indent 0))
@@ -183,7 +186,7 @@ If `url-request-method' is GET, the returned URL will include
                                                url-request-extra-headers)))
        ,@body)))
 
-;; v3
+
 (defmacro githubv3/with-basic-auth (&rest body)
   "Runs BODY with GitHub basic authorization taken from username/password in a header."
   (declare (indent 0))
@@ -197,7 +200,7 @@ If `url-request-method' is GET, the returned URL will include
                                                url-request-extra-headers)))
        ,@body)))
 
-;; v3
+
 (defun github-auth-info ()
   "Returns the user's GitHub authorization information.
 Searches for a GitHub username and token in the global git config,
@@ -246,7 +249,7 @@ signaled."
                      (error "GitHub error: %s" err))
                  (json-readtable-error (signal (car val) (cdr val))))))))
 
-;; v3
+
 (defun githubv3/retrieve (path callback &optional cbargs)
   "Retrieve GitHub API PATH asynchronously.
 Call CALLBACK with CBARGS when finished.
@@ -282,7 +285,7 @@ rather than the JSON response object."
                                cbargs))
                       cbargs)))))
 
-;; v3
+
 (defun githubv3/retrieve-synchronously (path)
   "Retrieve GitHub API PATH synchronously.
 
@@ -346,7 +349,6 @@ for the info then sets it to the git config."
     
     (cons user token)))
 
-;; v3
 (defun githubv3/basic-auth-info ()
   "Returns the user's GitHub basic authorization information.
 Searches for a GitHub username and password in the global git config,
@@ -369,7 +371,6 @@ for the info."
 
 ;;; OAuth
 
-;; v3
 ;;;###autoload
 (defun githubv3/create-auth-token ()
   "Create an authorization"
@@ -380,7 +381,6 @@ for the info."
      (list "authorizations"))
     ))
 
-;; v3
 ;;;###autoload
 (defun githubv3/list-auth-tokens ()
   "Create an authorization"
@@ -392,7 +392,6 @@ for the info."
 
 ;;; Users
 
-;; v3
 ;;;###autoload
 (defun githubv3/user-info (&optional user)
   "Get info about a given user.
@@ -405,21 +404,31 @@ If a username not supplied, the authenticated user will be used. "
      )))
 
 ;;;###autoload
-;; v3
 (defun githubv3/my-user-name ()
   "Return the authenticated user's name"
   (plist-get (githubv3/user-info) :login))
 
-;; v3
+;;;###autoload
 (defun githubv3/my-user-id ()
   "Return the authenticated user's ID"
   (plist-get (githubv3/user-info) :id))
+
+(when-ert-loaded
+ (ert-deftest ghv3-test-my-user-info ()
+   "Tests fetching a user's information"
+   (should (equal (githubv3/my-user-name) "robertzx"))
+   (should (equal (githubv3/my-user-id) 292370)))
+ 
+ (ert-deftest ghv3-test-auth-info ()
+   "Tests fetching a user's token auth info"
+   (should (equal (car (githubv3/auth-info)) "robertzx"))
+   (should (equal (substring (cdr (githubv3/auth-info)) 0 5) "c3e1a"))))
+
 
 
 
 ;;; Repositories
 
-;; v3
 ;;;###autoload
 (defun githubv3/repos-for-user (user)
   "Return an array of all repos owned by USER.
@@ -432,7 +441,6 @@ The repos are decoded JSON objects (plists)."
 
 ;;; Gists
 
-;; v3
 ;;;###autoload
 (defun githubv3/gists-for-user (user)
   "Return an array of all repos owned by USER.
@@ -442,7 +450,6 @@ The repos are decoded JSON objects (plists)."
       (list "users" user "gists"))
      ))
 
-;; v3
 ;;;###autoload
 (defun githubv3/get-gist (gist)
   "Return info about a named gist.
@@ -452,7 +459,6 @@ The result is a decoded JSON object (plists)."
      (list "gists" gist))
     ))
 
-;; v3
 ;;;###autoload
 (defun githubv3/fork-gist (gist)
   "Fork a named gist and return the URL."
@@ -461,7 +467,6 @@ The result is a decoded JSON object (plists)."
      (list "gists" gist "fork"))
     ))
 
-;; v3
 ;;
 ;; TODO: make this deal with the return value appropriately.
 ;;    if successful, gets an HTTP 204 back with no body.
@@ -479,27 +484,6 @@ The result is a decoded JSON object (plists)."
 
 ;;; Pull requests
 
-;;;
-;;; NOT CONVERTED TO V3 YET
-;;;
-
-;;;###autoload
-(defun githubv3/send-pull-request (text recipients)
-  "Send a pull request with text TEXT to RECIPIENTS.
-RECIPIENTS should be a list of usernames."
-  (let ((url-request-method "POST")
-        (githubv3/request-data (cons (cons "message[body]" text)
-                                     (mapcar (lambda (recipient)
-                                               (cons "message[to][]" recipient))
-                                             recipients)))
-        (githubv3/api-base githubv3/github-url)
-        (url-max-redirections 0) ;; GitHub will try to redirect, but we don't care
-        githubv3/parse-response)
-    (githubv3/retrieve (list (githubv3/repo-owner) (githubv3/repo-name)
-                             "pull_request" (githubv3/name-rev-for-remote "HEAD" "origin"))
-                       (lambda (_)
-                         (kill-buffer)
-                         (message "Your pull request was sent.")))))
 
 
 ;;; GitHub Information
