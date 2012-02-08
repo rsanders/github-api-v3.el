@@ -3,11 +3,23 @@
 ;;; Code:
 
 
-;;;### (autoloads (githubv3/repos-for-user githubv3/delete-gist githubv3/fork-gist
-;;;;;;  githubv3/get-gist githubv3/gists-for-user githubv3/my-user-name
-;;;;;;  githubv3/user-info githubv3/list-auth-tokens githubv3/create-auth-token
-;;;;;;  githubv3/set-config githubv3/config) "github-api-v3" "github-api-v3.el"
-;;;;;;  (20272 19406))
+;;;### (autoloads (githubv3/send-pull-request) "github-api-v2-obsolete"
+;;;;;;  "github-api-v2-obsolete.el" (20272 41010))
+;;; Generated autoloads from github-api-v2-obsolete.el
+
+(autoload 'githubv3/send-pull-request "github-api-v2-obsolete" "\
+Send a pull request with text TEXT to RECIPIENTS.
+RECIPIENTS should be a list of usernames.
+
+\(fn TEXT RECIPIENTS)" nil nil)
+
+;;;***
+
+;;;### (autoloads (githubv3/delete-gist githubv3/fork-gist githubv3/get-gist
+;;;;;;  githubv3/gists-for-user githubv3/repos-for-user githubv3/my-user-id
+;;;;;;  githubv3/my-user-name githubv3/user-info githubv3/list-auth-tokens
+;;;;;;  githubv3/create-auth-token githubv3/set-config githubv3/config)
+;;;;;;  "github-api-v3" "github-api-v3.el" (20272 41089))
 ;;; Generated autoloads from github-api-v3.el
 
 (autoload 'githubv3/config "github-api-v3" "\
@@ -42,6 +54,17 @@ Return the authenticated user's name
 
 \(fn)" nil nil)
 
+(autoload 'githubv3/my-user-id "github-api-v3" "\
+Return the authenticated user's ID
+
+\(fn)" nil nil)
+
+(autoload 'githubv3/repos-for-user "github-api-v3" "\
+Return an array of all repos owned by USER.
+The repos are decoded JSON objects (plists).
+
+\(fn USER)" nil nil)
+
 (autoload 'githubv3/gists-for-user "github-api-v3" "\
 Return an array of all repos owned by USER.
 The repos are decoded JSON objects (plists).
@@ -64,19 +87,12 @@ Delete a named gist and return the URL.
 
 \(fn GIST)" nil nil)
 
-(autoload 'githubv3/repos-for-user "github-api-v3" "\
-Return an array of all repos owned by USER.
-The repos are decoded JSON objects (plists).
-
-\(fn USER)" nil nil)
-
 (eval-after-load 'magit '(unless (featurep 'github-api-v3) (require 'github-api-v3)))
 
 ;;;***
 
-;;;### (autoloads nil nil ("github-api-v2-obsolete.el" "github-api-v3-localrepo.el"
-;;;;;;  "github-api-v3-pkg.el" "github-api-v3-repos.el" "github-api-v3-ui.el")
-;;;;;;  (20272 19669 221342))
+;;;### (autoloads nil nil ("github-api-v3-localrepo.el" "github-api-v3-pkg.el"
+;;;;;;  "github-api-v3-ui.el") (20274 6786 980093))
 
 ;;;***
 
